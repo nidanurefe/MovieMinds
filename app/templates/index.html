@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Review</title>
+    <link rel="stylesheet" href="/static/main.css">
+</head>
+<body>
+    {% extends 'base.html' %}
+
+    {% block content %}
+        <h1>Movies List</h1>
+        <div class="movie-container">
+            {% for movie in movies %}
+                <div class="movie" id="movie-{{ movie.id }}">
+                    <h2>{{ movie.title }}</h2>
+                    <p><strong>Release Year:</strong> {{ movie.release_year }}</p>
+                    <p><strong>Rating:</strong> {{ movie.rating }}</p>
+                    <p><strong>Genre:</strong> {{ movie.genre_name }}</p>
+                    <p><strong>Producer:</strong> {{ movie.producer_name }}</p>
+                    {% if movie.cover_image %}
+                        <p><strong>Cover Image:</strong></p>
+                        <img src="{{ movie.cover_image }}" alt="Cover Image for {{ movie.title }}" width="200">
+                    {% endif %}
+                    <button class="fav-button" data-movie-id="{{ movie.id }}">Add Favourite</button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endblock %}
+    
+    <script>
+        document.querySelectorAll('.fav-button').forEach(button => {
+            button.addEventListener('click', function() {
+                const movieId = this.getAttribute('data-movie-id');
+                const userId = "{{ user_id }}"; 
+    
+                fetch('/add_favourite', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ movie_id: movieId, user_id: userId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message); // Başarı mesajı göster
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            });
+        });
+    </script>
+    
+    
+</body>
+</html>

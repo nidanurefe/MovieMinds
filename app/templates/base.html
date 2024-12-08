@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Review</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+           
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/fav-movies">Favourite Movies</a></li>
+                <li><a href="/fav-actors">Favourite Actors</a></li>
+                <li><a href="/review">Review Movie</a></li>
+                <li><a href="/my-reviews">My Reviews</a></li>
+                <li><a href="/profile">Profile</a></li>
+                <li><a href="/logout">Logout</a></li>
+            </ul>
+        </div>
+        
+        <!-- Content Area -->
+        <div class="content">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+</body>
+</html>
