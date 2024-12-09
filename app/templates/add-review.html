@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Favourite Actors</title>
+    <link rel="stylesheet" href="/static/main.css">
+</head>
+<body>
+    {% extends 'base.html' %}
+    {% block content %}
+    <h1>Add Review</h1>
+    <form method="POST">
+        <label>Movie:</label><br>
+        <input type="text" name="movie" required><br>
+        <label>Review:</label><br>
+        <textarea name="review" required></textarea><br>
+        <button type="submit">Add Review</button>
+    </form>
+    {% endblock %}
+
+
+
+</body>
+</html>

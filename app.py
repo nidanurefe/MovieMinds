@@ -4,10 +4,25 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 app = createApp()
 app.secret_key = "your_secret_key"
 
+def login_required(f):
+    """Decorator to ensure user is logged in."""
+    from functools import wraps
+
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            flash("You need to log in first.", "error")
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+
+    return decorated_function
+
+
 @app.route('/', methods=['GET', 'POST'])
+@login_required
 def index():
-    # if 'user_id' not in session:
-    #     return redirect(url_for('login'))
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
     search_query = request.args.get('search', '')  # Arama kelimesi
     genre_filter = request.args.get('genre', '')   # Seçilen kategori
 
@@ -15,7 +30,6 @@ def index():
     cursor.execute("SELECT id, name FROM genres")
     genres = cursor.fetchall()
 
-    # SQL sorgusunu oluştur
     query = """
         SELECT 
             movies.id,
@@ -80,49 +94,35 @@ def register():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        try:
-            username = request.form['username']
-            password = request.form['password']
+        username = request.form['username']
+        password = request.form['password']
 
-            cursor = app.db.cursor()
-            cursor.execute("SELECT * FROM users WHERE username = %s AND password = %s", (username, password))
-            user = cursor.fetchone()  
+        cursor = app.db.cursor()
+        cursor.execute("SELECT * FROM users WHERE username = %s AND password = %s", (username, password))
+        user = cursor.fetchone()
 
-            if user:
-                user_dict = {
-                    'id': user[0],
-                    'username': user[1],
-                    'password': user[2],
-                    'email': user[3],
-                }
-                session['user_id'] = user_dict['id']
-                return redirect(url_for('index'))
-            else:
-                flash("Invalid credentials. User not found.", "error")
-                return render_template('login.html')
-
-        except Exception as e:
-            flash(f"An error occurred: {str(e)}", "error")
-            return render_template('login.html')
+        if user:
+            session['user_id'] = user[0]
+            session['username'] = user[1]
+            flash("Login successful!", "success")
+            return redirect(url_for('index'))
+        else:
+            flash("Invalid credentials. Please try again.", "error")
 
     return render_template('login.html')
 
 @app.route('/logout')
 def logout():
-    session.pop('user_id', None)  # Kullanıcıyı session'dan çıkar
+    session.clear()
+    flash("You have been logged out.", "success")
     return redirect(url_for('login'))
 
 
-# Route to display user's favorite actors
 @app.route('/fav-actors')
+@login_required
 def favourite_actors():
-    user_id = session.get('user_id')
+    user_id = session['user_id']
 
-    if not user_id:
-        flash("You need to log in first.", "error")
-        return redirect(url_for('login'))
-
-    # Kullanıcıya ait favori oyuncuları çek
     cursor = app.db.cursor()
     cursor.execute("""
         SELECT 
@@ -269,41 +269,31 @@ def add_movie() -> tuple:
         return jsonify({"error": str(e)}), 400
 
 @app.route('/profile', methods=['GET', 'POST'])
+@login_required
 def profile():
-    user_id = session.get('user_id')
-
-    if not user_id:
-        flash("You need to log in first.", "error")
-        return redirect(url_for('login'))
+    user_id = session['user_id']
 
     cursor = app.db.cursor()
     cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
     user = cursor.fetchone()
 
-    if not user:
-        flash("User not found.", "error")
-        return redirect(url_for('index'))
-
     if request.method == 'POST':
-        try:
-            username = request.form['username']
-            password = request.form['password']
-            email = request.form['email']
-            first_name = request.form['first_name']
-            last_name = request.form['last_name']
+        username = request.form['username']
+        password = request.form['password']
+        email = request.form['email']
+        first_name = request.form['first_name']
+        last_name = request.form['last_name']
 
-            cursor.execute("""
-                UPDATE users 
-                SET username = %s, password = %s, email = %s, first_name = %s, last_name = %s 
-                WHERE id = %s
-            """, (username, password, email, first_name, last_name, user_id))
-            app.db.commit()
-            cursor.close()
+        cursor.execute("""
+            UPDATE users 
+            SET username = %s, password = %s, email = %s, first_name = %s, last_name = %s 
+            WHERE id = %s
+        """, (username, password, email, first_name, last_name, user_id))
+        app.db.commit()
+        cursor.close()
 
-            return redirect(url_for('profile'))
-
-        except Exception as e:
-            flash(f"An error occurred: {str(e)}", "error")
+        flash("Profile updated successfully!", "success")
+        return redirect(url_for('profile'))
 
     return render_template('profile.html', user=user)
 
@@ -365,10 +355,110 @@ def top_movies():
 
     return render_template('top-movies.html', movies=movies)
 
+
+
+
+@app.route('/edit_review/<int:review_id>', methods=['GET', 'POST'])
+def edit_review(review_id):
+    if request.method == 'POST':
+        try:
+            user_id = session.get('user_id')
+            if not user_id:
+                return jsonify({"error": "User not logged in."}), 401
+
+            review_text = request.form['review_text']
+            rating = request.form['rating']
+
+            cursor = app.db.cursor()
+            cursor.execute(
+                "UPDATE reviews SET review_text = %s, rating = %s WHERE id = %s AND user_id = %s",
+                (review_text, rating, review_id, user_id)
+            )
+            app.db.commit()
+            cursor.close()
+
+            return jsonify({"message": "Review updated successfully!"}), 200
+
+        except Exception as e:
+            return jsonify({"error": str(e)}), 400
+
+    cursor = app.db.cursor()
+    cursor.execute(
+        "SELECT review_text, rating FROM reviews WHERE id = %s AND user_id = %s",
+        (review_id, session.get('user_id'))
+    )
+    review = cursor.fetchone()
+    cursor.close()
+
+    return render_template('edit-review.html', review=review, review_id=review_id)
+
+
+
+
+@app.route('/reviews/all')
+def review_all():
+    cursor = app.db.cursor()
+
+    cursor.execute("""
+        SELECT 
+            reviews.id,
+            users.username AS user,
+            movies.title AS movie,
+            reviews.review_text 
+        FROM reviews
+        JOIN users ON reviews.user_id = users.id
+        JOIN movies ON reviews.movie_id = movies.id
+    """)
+    columns = [col[0] for col in cursor.description]
+    reviews = [dict(zip(columns, row)) for row in cursor.fetchall()]
+    cursor.close()
+
+    return render_template('all-reviews.html', reviews=reviews)
+
 @app.route('/show-session-id')
 def show_session_id():
     session_id = session.sid if hasattr(session, 'sid') else "Session ID not available"
     return f"Current Session ID: {session_id}"
+
+@app.route('/review/add', methods=['GET', 'POST'])
+def add_review():
+    if request.method == 'POST':
+        movie = request.form.get('movie')
+        review = request.form.get('review')
+        user = "current_user"  # Mevcut oturumdaki kullanıcı adı (yerine gerçek kullanıcı doğrulaması eklenecek)
+        review_id = len(reviews) + 1
+        reviews.append({'id': review_id, 'user': user, 'movie': movie, 'review': review})
+        return redirect(url_for('my_reviews'))
+    return render_template('add-review.html')
+
+from flask import session, render_template
+
+@app.route('/reviews/my-reviews')
+def my_reviews():
+    if 'user_id' not in session:
+        return redirect('/login')  # Kullanıcı giriş yapmamışsa login sayfasına yönlendirin
+    
+    user_id = session['user_id']  # Giriş yapan kullanıcının ID'sini alın
+    cursor = app.db.cursor()
+
+    # Giriş yapan kullanıcıya ait yorumları al
+    cursor.execute("""
+        SELECT 
+            reviews.id,
+            movies.title AS movie,
+            reviews.review_text 
+        FROM reviews
+        JOIN movies ON reviews.movie_id = movies.id
+        WHERE reviews.user_id = %s
+    """, (user_id,))
+    
+    columns = [col[0] for col in cursor.description]
+    user_reviews = [dict(zip(columns, row)) for row in cursor.fetchall()]
+    cursor.close()
+
+    return render_template('my-reviews.html', reviews=user_reviews)
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)

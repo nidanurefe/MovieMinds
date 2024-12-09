@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reviews</title>
+</head>
+<body>
+    {% extends 'base.html' %}
+
+    {% block content %}
+    <h1>Movie Reviews</h1>
+
+    
+    <form method="POST">
+        <label for="movie">Select a movie:</label>
+        <select name="movie_id" id="movie">
+            {% for movie in movies %}
+            <option value="{{ movie[0] }}">{{ movie[1] }}</option>
+            {% endfor %}
+        </select>
+        <label for="review">Your Review:</label>
+        <textarea name="review" id="review" required></textarea>
+        <button type="submit">Submit</button>
+    </form>
+
+    <!-- Yorumları listeleme -->
+    <h2>All Reviews</h2>
+    <ul>
+        {% for review in reviews %}
+        <li><strong>{{ review.user }}</strong> reviewed <em>{{ review.movie }}</em>: "{{ review.review }}"</li>
+        {% endfor %}
+    </ul>
+    {% endblock %}
+</body>
+</html>

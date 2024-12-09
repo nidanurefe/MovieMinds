@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Reviews</title>
+</head>
+<body>
+    {% extends 'base.html' %}
+
+    {% block content %}
+    <h1>My Reviews</h1>
+    {% if reviews %}
+        <ul>
+            {% for review in reviews %}
+                <li>
+                    <strong>Movie:</strong> {{ review.movie }}<br>
+                    <strong>Review:</strong> {{ review.review }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>You have not posted any reviews yet.</p>
+    {% endif %}
+    {% endblock %}
+</body>
+</html>
