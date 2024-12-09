@@ -104,7 +104,6 @@ def login():
         if user:
             session['user_id'] = user[0]
             session['username'] = user[1]
-            flash("Login successful!", "success")
             return redirect(url_for('index'))
         else:
             flash("Invalid credentials. Please try again.", "error")
@@ -114,7 +113,6 @@ def login():
 @app.route('/logout')
 def logout():
     session.clear()
-    flash("You have been logged out.", "success")
     return redirect(url_for('login'))
 
 
@@ -191,7 +189,6 @@ def favourite_movies():
     user_id = session.get('user_id')
 
     if not user_id:
-        flash("You need to log in first.", "error")
         return redirect(url_for('login'))
 
     cursor = app.db.cursor()
@@ -292,7 +289,6 @@ def profile():
         app.db.commit()
         cursor.close()
 
-        flash("Profile updated successfully!", "success")
         return redirect(url_for('profile'))
 
     return render_template('profile.html', user=user)
