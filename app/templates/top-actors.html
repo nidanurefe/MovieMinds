@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Top Actors</title>
+    <link rel="stylesheet" href="/static/main.css">
+</head>
+<body>
+    {% extends 'base.html' %}
+
+    {% block content %}
+
+        <div class="content">
+            <h1>Top Actors</h1>
+            <ul>
+                {% for actor in actors %}
+                    <li>{{ actor.name }} - {{ actor.fav_count }} favourites</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    {% endblock %}
+</body>
+</html>

@@ -10,7 +10,29 @@
     {% extends 'base.html' %}
 
     {% block content %}
-        <h1>Movies List</h1>
+        <h1>Explore</h1>
+    
+        <form method="GET" action="/">
+            <div class="filters">
+                <div class="filter">
+                    <label for="search">Search by Title:</label>
+                    <input type="text" id="search" name="search" value="{{ search_query }}">
+                </div>
+    
+                <div class="filter">
+                    <label for="genre">Filter by Genre:</label>
+                    <select name="genre" id="genre">
+                        <option value="">All Genres</option>
+                        {% for genre in genres %}
+                            <option value="{{ genre[0] }}" {% if genre[0] == genre_filter %} selected {% endif %}>{{ genre[1] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+    
+                <button type="submit">Apply Filters</button>
+            </div>
+        </form>
+    
         <div class="movie-container">
             {% for movie in movies %}
                 <div class="movie" id="movie-{{ movie.id }}">
@@ -20,7 +42,6 @@
                     <p><strong>Genre:</strong> {{ movie.genre_name }}</p>
                     <p><strong>Producer:</strong> {{ movie.producer_name }}</p>
                     {% if movie.cover_image %}
-                        <p><strong>Cover Image:</strong></p>
                         <img src="{{ movie.cover_image }}" alt="Cover Image for {{ movie.title }}" width="200">
                     {% endif %}
                     <button class="fav-button" data-movie-id="{{ movie.id }}">Add Favourite</button>
@@ -29,30 +50,37 @@
         </div>
     {% endblock %}
     
-    <script>
-        document.querySelectorAll('.fav-button').forEach(button => {
-            button.addEventListener('click', function() {
-                const movieId = this.getAttribute('data-movie-id');
-                const userId = "{{ user_id }}"; 
     
-                fetch('/add_favourite', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ movie_id: movieId, user_id: userId })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    alert(data.message); // Başarı mesajı göster
-                })
-                .catch(error => {
-                    console.error('Error:', error);
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const userId = "{{ session.get('user_id') }}"; 
+
+            if (!userId) {
+                alert("You must be logged in to add favourites.");
+                return;
+            }
+
+            document.querySelectorAll('.fav-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const movieId = this.getAttribute('data-movie-id');
+                    
+                    fetch('/add_favourite', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ movie_id: movieId, user_id: userId })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        alert(data.message); 
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);  
+                    });
                 });
             });
         });
     </script>
-    
-    
 </body>
 </html>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Top Movies</title>
+    <link rel="stylesheet" href="/static/main.css">
+</head>
+<body>
+    {% extends 'base.html' %}
+
+    {% block content %}
+
+    <div class="movie-container">
+        {% for movie in movies %}
+            <div class="movie" id="movie-{{ movie.id }}">
+                <h2>{{ movie.title }}</h2>
+                <p><strong>Release Year:</strong> {{ movie.release_year }}</p>
+                <p><strong>Rating:</strong> {{ movie.rating }}</p>
+                <p><strong>Genre:</strong> {{ movie.genre_name }}</p>
+                <p><strong>Producer:</strong> {{ movie.producer_name }}</p>
+                {% if movie.cover_image %}
+                    <img src="{{ movie.cover_image }}" alt="Cover Image for {{ movie.title }}" width="200">
+                {% endif %}
+                <button class="fav-button" data-movie-id="{{ movie.id }}">Add Favourite</button>
+            </div>
+        {% endfor %}
+    </div>
+    
+    {% endblock %}
+</body>
+</html>

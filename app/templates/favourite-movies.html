@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Favourite Movies</title>
+    <link rel="stylesheet" href="/static/main.css">
+</head>
+<body>
+    {% extends 'base.html' %}
+
+{% block content %}
+    <h1>Your Favourite Movies</h1>
+
+    <div class="movie-container">
+        {% if movies %}
+            {% for movie in movies %}
+                <div class="movie" id="movie-{{ movie.id }}">
+                    <h2>{{ movie.title }}</h2>
+                    <p><strong>Release Year:</strong> {{ movie.release_year }}</p>
+                    <p><strong>Rating:</strong> {{ movie.rating }}</p>
+                    <p><strong>Genre:</strong> {{ movie.genre_name }}</p>
+                    <p><strong>Producer:</strong> {{ movie.producer_name }}</p>
+                    <p><strong>Fav Count:</strong> {{ movie.fav_count }}</p>  <!-- Display the fav_count -->
+                    {% if movie.cover_image %}
+                        <img src="{{ movie.cover_image }}" alt="Cover Image for {{ movie.title }}" width="200">
+                    {% endif %}
+                    <button class="remove-fav-button" data-movie-id="{{ movie.id }}">Remove from Favourites</button>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>You have no favourite movies yet.</p>
+        {% endif %}
+    </div>
+{% endblock %}
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const userId = "{{ session.get('user_id') }}"; 
+
+        if (!userId) {
+            alert("You must be logged in to remove favourites.");
+            return;
+        }
+
+        document.querySelectorAll('.remove-fav-button').forEach(button => {
+            button.addEventListener('click', function() {
+                const movieId = this.getAttribute('data-movie-id');
+                
+                fetch('/remove_favourite', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ movie_id: movieId, user_id: userId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    location.reload();  // Sayfayı yeniden yükleyerek favori listesi güncellenir
+                })
+                .catch(error => {
+                    console.error('Error:', error);  
+                });
+            });
+        });
+    });
+</script>
+
+</body>
+</html>

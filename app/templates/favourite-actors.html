@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Favourite Actors</title>
+    <link rel="stylesheet" href="/static/main.css">
+</head>
+<body>
+    {% extends "base.html" %}
+
+    {% block content %}
+        <h1>Your Favorite Actors</h1>
+        {% if actors %}
+            <ul>
+            {% for actor in actors %}
+                <li>{{ actor.name }}</li>
+            {% endfor %}
+            </ul>
+        {% else %}
+            <p>You have no favorite actors yet.</p>
+        {% endif %}
+    {% endblock %}
+    
+
+</body>
+</html>
