@@ -215,3 +215,58 @@ body {
 }
 
 
+/* Search Section Styles */
+.search-filters {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin: 20px 0;
+    padding: 10px;
+    background-color: #f4f4f4;
+    border-radius: 10px;
+}
+
+.filter {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    font-size: 1rem;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #333;
+}
+
+.search-input, .genre-select {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+    outline: none;
+}
+
+.search-input:focus, .genre-select:focus {
+    border-color: #483C83;
+}
+
+.apply-button {
+    background-color: #483C83;
+    color: white;
+    border: none;
+    padding: 0px 10px;
+    font-size: 1rem;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.apply-button:hover {
+    background-color: #5a4f9a;
+}
+
+/* Optional: Add spacing between the input fields and the submit button */
+.search-filters .filter {
+    margin-bottom: 10px;
+}
+

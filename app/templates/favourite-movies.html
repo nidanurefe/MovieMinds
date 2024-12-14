@@ -32,17 +32,15 @@
             <p>You have no favourite movies yet.</p>
         {% endif %}
     </div>
-{% endblock %}
-
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const userId = "{{ session.get('user_id') }}"; 
-
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+        const userId = "{{ session.get('user_id') }}";
+    
         if (!userId) {
             alert("You must be logged in to remove favourites.");
             return;
         }
-
+    
         document.querySelectorAll('.remove-fav-button').forEach(button => {
             button.addEventListener('click', function() {
                 const movieId = this.getAttribute('data-movie-id');
@@ -52,12 +50,12 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ movie_id: movieId, user_id: userId })
+                    body: JSON.stringify({ movie_id: movieId })
                 })
                 .then(response => response.json())
                 .then(data => {
                     alert(data.message);
-                    location.reload();  // Sayfayı yeniden yükleyerek favori listesi güncellenir
+                    location.reload();  // Favori listesi güncellenir
                 })
                 .catch(error => {
                     console.error('Error:', error);  
@@ -65,7 +63,11 @@
             });
         });
     });
-</script>
+    
+    </script>
+{% endblock %}
+
+
 
 </body>
 </html>

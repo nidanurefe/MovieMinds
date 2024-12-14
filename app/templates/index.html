@@ -13,25 +13,26 @@
         <h1>Explore</h1>
     
         <form method="GET" action="/">
-            <div class="filters">
+            <div class="search-filters">
                 <div class="filter">
                     <label for="search">Search by Title:</label>
-                    <input type="text" id="search" name="search" value="{{ search_query }}">
+                    <input type="text" id="search" name="search" value="{{ search_query }}" class="search-input">
                 </div>
-    
+        
                 <div class="filter">
                     <label for="genre">Filter by Genre:</label>
-                    <select name="genre" id="genre">
+                    <select name="genre" id="genre" class="genre-select">
                         <option value="">All Genres</option>
                         {% for genre in genres %}
                             <option value="{{ genre[0] }}" {% if genre[0] == genre_filter %} selected {% endif %}>{{ genre[1] }}</option>
                         {% endfor %}
                     </select>
                 </div>
-    
-                <button type="submit">Apply Filters</button>
+        
+                <button type="submit" class="apply-button">Apply Filters</button>
             </div>
         </form>
+        
     
         <div class="movie-container">
             {% for movie in movies %}
@@ -48,39 +49,44 @@
                 </div>
             {% endfor %}
         </div>
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+         console.log("JavaScript is loaded"); // Eklendi
+         const favButtons = document.querySelectorAll(".fav-button");
+         
+         favButtons.forEach(button => {
+             button.addEventListener("click", function () {
+                 console.log("Button clicked"); // Eklendi
+                 const movieId = this.getAttribute("data-movie-id");
+     
+                 fetch("/add_favourite", {
+                     method: "POST",
+                     headers: {
+                         "Content-Type": "application/json"
+                     },
+                     body: JSON.stringify({ movie_id: movieId })
+                 })
+                 .then(response => response.json())
+                 .then(data => {
+                     console.log(data); // Eklendi
+                     if (data.error) {
+                         alert(data.error);
+                     } else {
+                         alert(data.message);
+                     }
+                 })
+                 .catch(error => {
+                     console.error("Error:", error);
+                 });
+             });
+         });
+     });
+     
+         </script>
     {% endblock %}
     
     
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const userId = "{{ session.get('user_id') }}"; 
-
-            if (!userId) {
-                alert("You must be logged in to add favourites.");
-                return;
-            }
-
-            document.querySelectorAll('.fav-button').forEach(button => {
-                button.addEventListener('click', function() {
-                    const movieId = this.getAttribute('data-movie-id');
-                    
-                    fetch('/add_favourite', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ movie_id: movieId, user_id: userId })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        alert(data.message); 
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);  
-                    });
-                });
-            });
-        });
-    </script>
+    
+    
 </body>
 </html>

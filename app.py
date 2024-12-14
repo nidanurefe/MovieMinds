@@ -164,27 +164,28 @@ def add_favorite_actor():
 
 @app.route('/add_favourite', methods=['POST'])
 def add_favourite():
+    if 'user_id' not in session:
+        return jsonify({"error": "User not logged in"}), 401
+
+    user_id = session['user_id']
+    movie_id = request.json.get('movie_id')
+
+    if not movie_id:
+        return jsonify({"error": "Movie ID is required"}), 400
+
     try:
-        data = request.get_json()
-        movie_id = data['movie_id']
-        
-        user_id = session.get('user_id')
-
-        if not user_id:
-            return jsonify({"error": "User not logged in."}), 401  # Kullanıcı giriş yapmamışsa hata döndür
-
         cursor = app.db.cursor()
-        cursor.execute(
-            "INSERT INTO user_favorites (user_id, movie_id) VALUES (%s, %s)",
-            (user_id, movie_id)
-        )
+        # Check if already in favourites
+        cursor.execute("SELECT * FROM user_favorite_movies WHERE user_id = %s AND movie_id = %s", (user_id, movie_id))
+        if cursor.fetchone():
+            return jsonify({"message": "Movie already in favourites"}), 200
+
+        # Add to favourites
+        cursor.execute("INSERT INTO user_favorite_movies (user_id, movie_id) VALUES (%s, %s)", (user_id, movie_id))
         app.db.commit()
-        cursor.close()
-
-        return jsonify({"message": "Movie added to favourites!"}), 200
-
+        return jsonify({"message": "Movie added to favourites"}), 201
     except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/fav-movies')
 def favourite_movies():
@@ -214,6 +215,38 @@ def favourite_movies():
     cursor.close()
 
     return render_template('favourite-movies.html', movies=movies)
+
+@app.route('/remove_favourite', methods=['POST'])
+def remove_favourite():
+    user_id = session.get('user_id')
+
+    if not user_id:
+        return jsonify({"error": "You must be logged in to remove favourites."}), 401
+
+    try:
+        data = request.get_json()
+        movie_id = data.get('movie_id')
+
+        if not movie_id:
+            return jsonify({"error": "Movie ID is required."}), 400
+
+        cursor = app.db.cursor()
+
+        # Delete the record from the user_favorite_movies table
+        cursor.execute("""
+            DELETE FROM user_favorite_movies 
+            WHERE user_id = %s AND movie_id = %s
+        """, (user_id, movie_id))
+
+        app.db.commit()
+        cursor.close()
+
+        return jsonify({"message": "Movie removed from favourites successfully."})
+    
+    except Exception as e:
+        app.db.rollback()
+        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+
 
 
 @app.route('/rate_movie', methods=['POST'])
