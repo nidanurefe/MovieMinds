@@ -15,7 +15,7 @@
         <div class="actors-container">
             <div class="actors-grid">
                 {% for actor in actors %}
-                <div class="actor-card">
+                <div class="actor-card" data-actor-id="{{ actor.id }}">
                     <div class="actor-image">
                         {% if actor.img_url %}
                             <img src="{{ actor.img_url }}" alt="{{ actor.name }}">
@@ -23,7 +23,10 @@
                             <p>No image available</p>
                         {% endif %}
                     </div>
-                    
+                    <div class="actor-details">
+                        <h2>{{ actor.name }}</h2>
+                        <button class="remove-favorite-btn">Remove from Favorites</button>
+                    </div>
                 </div>
                 {% endfor %}
             </div>
@@ -31,6 +34,44 @@
     {% else %}
         <p>You have no favorite actors yet.</p>
     {% endif %}
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Tüm 'Remove from Favorites' butonlarını seç
+            document.querySelectorAll('.remove-favorite-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const actorCard = this.closest('.actor-card');
+                    const actorId = actorCard.getAttribute('data-actor-id');
+                    const actorName = actorCard.querySelector('h2').textContent;
+
+                    if (!actorId) {
+                        console.error('Actor ID not found!');
+                        return;
+                    }
+
+                    fetch('/remove_favorite_actor', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ actor_id: actorId })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            alert(`Error: ${data.error}`);
+                        } else {
+                            alert(`${actorName} removed from your favorites.`);
+                            // Aktörü listeden kaldır
+                            actorCard.remove();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error removing favorite:', error);
+                    });
+                });
+            });
+        });
+    </script>
     {% endblock %}
 </body>
 </html>

@@ -139,17 +139,29 @@ def favourite_actors():
 
 
 
-# Route to handle adding favorite actors
 @app.route('/add_favorite_actor', methods=['POST'])
 def add_favorite_actor():
+    
+    data = request.get_json()
+    actor_id = data.get('actor_id')
+    user_id = session.get('user_id')
+
+    if not user_id:
+        return jsonify({"error": "User not logged in."}), 401
     try:
-        actor_id = request.form['actor_id']
-        user_id = session.get('user_id')
-
-        if not user_id:
-            return jsonify({"error": "User not logged in."}), 401  # Kullanıcı giriş yapmamışsa hata döndür
-
         cursor = app.db.cursor()
+
+        # Veri zaten var mı kontrol et
+        cursor.execute(
+            "SELECT COUNT(*) FROM user_favorite_actors WHERE user_id = %s AND actor_id = %s",
+            (user_id, actor_id)
+        )
+        
+        if cursor.fetchone():
+            print(cursor.fetchone())
+            return jsonify({"message": "Actor is already in your favorites!"}), 200
+
+        # Veri ekle
         cursor.execute(
             "INSERT INTO user_favorite_actors (user_id, actor_id) VALUES (%s, %s)",
             (user_id, actor_id)
@@ -161,6 +173,8 @@ def add_favorite_actor():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
+
 
 @app.route('/add_favourite', methods=['POST'])
 def add_favourite():
@@ -215,6 +229,32 @@ def favourite_movies():
     cursor.close()
 
     return render_template('favourite-movies.html', movies=movies)
+
+@app.route('/remove_favorite_actor', methods=['POST'])
+def remove_favorite_actor():
+    try:
+        data = request.get_json()
+        actor_id = data.get('actor_id')
+        user_id = session.get('user_id')
+
+        if not user_id:
+            return jsonify({"error": "User not logged in."}), 401
+
+        cursor = app.db.cursor()
+
+        # Favorilerden aktörü kaldır
+        cursor.execute(
+            "DELETE FROM user_favorite_actors WHERE user_id = %s AND actor_id = %s",
+            (user_id, actor_id)
+        )
+        app.db.commit()
+        cursor.close()
+
+        return jsonify({"message": "Actor removed from favorites!"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
 
 @app.route('/remove_favourite', methods=['POST'])
 def remove_favourite():
@@ -332,18 +372,20 @@ def profile():
 def top_actors():
     cursor = app.db.cursor()
     cursor.execute("""
-        SELECT actors.id, actors.name, actors.img_url, COUNT(user_favorite_actors.actor_id) AS fav_count
+        SELECT actors.id, actors.name, actors.img_url, 
+               COUNT(user_favorite_actors.actor_id) AS fav_count
         FROM actors
-        JOIN user_favorite_actors ON actors.id = user_favorite_actors.actor_id
+        LEFT JOIN user_favorite_actors 
+        ON actors.id = user_favorite_actors.actor_id
         GROUP BY actors.id
         ORDER BY fav_count DESC
-        LIMIT 10
     """)
     columns = [col[0] for col in cursor.description]
     actors = [dict(zip(columns, row)) for row in cursor.fetchall()]
     cursor.close()
 
     return render_template('top-actors.html', actors=actors)
+
 
 
 

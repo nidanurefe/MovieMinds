@@ -15,23 +15,66 @@
             <h1>Top Actors</h1>
             <div class="actors-grid">
                 {% for actor in actors %}
-                    <div class="actor-card">
-                        <div class="actor-image">
-                            {% if actor.img_url %}
-                                <img src="{{ actor.img_url }}" alt="{{ actor.name }}'s image">
-                            {% else %}
-                                <p>No image available</p>
-                            {% endif %}
-                        </div>
-                        <div class="actor-details">
-                            <h2>{{ actor.name }}</h2>
-                            <p>{{ actor.fav_count }} favorites</p>
-                        </div>
-                        <button class="add-favorite-btn">Add Favorite</button>
+                <div class="actor-card" data-actor-id="{{ actor.id }}">
+                    <div class="actor-image">
+                        {% if actor.img_url %}
+                            <img src="{{ actor.img_url }}" alt="{{ actor.name }}'s image">
+                        {% else %}
+                            <p>No image available</p>
+                        {% endif %}
                     </div>
+                    <div class="actor-details">
+                        <h2>{{ actor.name }}</h2>
+                        <p>{{ actor.fav_count }} favorites</p>
+                    </div>
+                    <button class="add-favorite-btn">Add Favorite</button>
+                </div>
+                
                 {% endfor %}
             </div>
         </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+    // Tüm favori ekleme butonlarını seç
+    document.querySelectorAll('.add-favorite-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const actorCard = this.closest('.actor-card');
+            const actorName = actorCard.querySelector('h2').textContent; // Aktörün adı
+            const actorId = actorCard.getAttribute('data-actor-id'); // Aktörün ID'si
+
+            if (!actorId) {
+                console.error('Actor ID not found!');
+                return;
+            }
+
+            fetch('/add_favorite_actor', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ actor_id: actorId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(`Error: ${data.error}`);
+                } else {
+                    alert(`${actorName} added to your favorites!`);
+                    // Favori sayısını güncelle
+                    const favCountElem = actorCard.querySelector('p');
+                    const currentFavCount = parseInt(favCountElem.textContent) || 0;
+                    favCountElem.textContent = `${currentFavCount + 1} favorites`;
+                }
+            })
+            .catch(error => {
+                console.error('Error adding favorite:', error);
+            });
+        });
+    });
+});
+
+        </script>
 
     {% endblock %}
 </body>
