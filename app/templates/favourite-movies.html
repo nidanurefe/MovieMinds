@@ -21,7 +21,7 @@
                     <p><strong>Rating:</strong> {{ movie.rating }}</p>
                     <p><strong>Genre:</strong> {{ movie.genre_name }}</p>
                     <p><strong>Producer:</strong> {{ movie.producer_name }}</p>
-                    <p><strong>Fav Count:</strong> {{ movie.fav_count }}</p>  <!-- Display the fav_count -->
+                    <p><strong>Fav Count:</strong> {{ movie.fav_count }}</p>
                     {% if movie.cover_image %}
                         <img src="{{ movie.cover_image }}" alt="Cover Image for {{ movie.title }}" width="200">
                     {% endif %}
@@ -55,7 +55,7 @@
                 .then(response => response.json())
                 .then(data => {
                     alert(data.message);
-                    location.reload();  // Favori listesi güncellenir
+                    location.reload();  
                 })
                 .catch(error => {
                     console.error('Error:', error);  

@@ -36,12 +36,11 @@
 
         <script>
             document.addEventListener('DOMContentLoaded', () => {
-    // Tüm favori ekleme butonlarını seç
     document.querySelectorAll('.add-favorite-btn').forEach(button => {
         button.addEventListener('click', function() {
             const actorCard = this.closest('.actor-card');
-            const actorName = actorCard.querySelector('h2').textContent; // Aktörün adı
-            const actorId = actorCard.getAttribute('data-actor-id'); // Aktörün ID'si
+            const actorName = actorCard.querySelector('h2').textContent; 
+            const actorId = actorCard.getAttribute('data-actor-id'); 
 
             if (!actorId) {
                 console.error('Actor ID not found!');
