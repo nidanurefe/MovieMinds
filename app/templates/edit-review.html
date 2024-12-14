@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Review</title>
+    <link rel="stylesheet" href="/static/main.css">
+    <style>
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+h1 {
+    text-align: center;
+    color: #483C83; 
+    margin-top: 30px;
+    font-size: 2.5rem;
+}
+
+form {
+    background-color: #fff;
+    max-width: 600px;
+    margin: 30px auto;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+label {
+    font-size: 1.1rem;
+    color: #555;
+    margin-bottom: 10px;
+    display: block;
+}
+
+textarea {
+    width: 95%;
+    padding: 10px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    resize: vertical; 
+    margin-bottom: 20px;
+}
+
+button {
+    background-color: #483C83; 
+    color: white;
+    font-size: 1.1rem;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #2f2779; 
+}
+
+.container {
+    margin: 0 auto;
+    padding: 0 15px;
+    max-width: 1000px;
+}
+
+    </style>
+</head>
+<body>
+    {% extends 'base.html' %}
+
+    {% block content %}
+    <h1>Edit Review</h1>
+
+    <form method="POST">
+        <label for="review_text">Review:</label>
+        <textarea id="review_text" name="review_text" rows="4" cols="50">{{ review.review_text }}</textarea>
+        <button type="submit">Save Changes</button>
+    </form>
+    {% endblock %}
+</body>
+</html>
