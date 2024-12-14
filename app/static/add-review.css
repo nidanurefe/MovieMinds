@@ -1,0 +1,84 @@
+/* Genel Sayfa Ayarları */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+
+/* Başlık Stili */
+h1 {
+    text-align: center;
+    margin-top: 30px;
+    color: #333;
+    font-size: 2em;
+}
+
+/* Form Yapısı */
+form {
+    max-width: 600px;
+    margin: 30px auto;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Form Alanları */
+label {
+    font-size: 1.1em;
+    color: #555;
+    display: block;
+    margin-bottom: 8px;
+}
+
+/* Film Seçimi - Dropdown Menüsü */
+select,
+input[type="text"],
+textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1em;
+    box-sizing: border-box;
+    margin-bottom: 15px;
+}
+
+/* Giriş Alanları Focus Efekti */
+input[type="text"]:focus,
+textarea:focus,
+select:focus {
+    border-color: #007bff;
+    outline: none;
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
+}
+
+/* Submit Butonu */
+button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    font-size: 1.1em;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+    transition: background-color 0.3s;
+}
+
+/* Submit Butonu Hover Efekti */
+button:hover {
+    background-color: #0056b3;
+}
+
+/* Responsive Ayarlar */
+@media (max-width: 600px) {
+    form {
+        padding: 15px;
+    }
+
+    button {
+        font-size: 1em;
+    }
+}

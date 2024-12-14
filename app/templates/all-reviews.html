@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reviews</title>
+    <link rel="stylesheet" href="/static/main.css">
 </head>
 <body>
     {% extends 'base.html' %}
@@ -11,12 +12,11 @@
     {% block content %}
     <h1>Movie Reviews</h1>
 
-    
     <form method="POST">
         <label for="movie">Select a movie:</label>
         <select name="movie_id" id="movie">
             {% for movie in movies %}
-            <option value="{{ movie[0] }}">{{ movie[1] }}</option>
+            <option value="{{ movie.id }}">{{ movie.title }}</option>
             {% endfor %}
         </select>
         <label for="review">Your Review:</label>
@@ -26,11 +26,23 @@
 
     <!-- Yorumları listeleme -->
     <h2>All Reviews</h2>
-    <ul>
+    <div class="reviews-container">
         {% for review in reviews %}
-        <li><strong>{{ review.user }}</strong> reviewed <em>{{ review.movie }}</em>: "{{ review.review }}"</li>
+        <div class="review-card">
+            <div class="movie-poster">
+                {% if review.cover_image %}
+                    <img src="{{ review.cover_image }}" alt="{{ review.movie }}">
+                {% else %}
+                    <p>No poster available</p>
+                {% endif %}
+            </div>
+            <div class="review-details">
+                <h3>{{ review.user }} reviewed <em>{{ review.movie }}</em></h3>
+                <p>"{{ review.review_text }}"</p>
+            </div>
+        </div>
         {% endfor %}
-    </ul>
+    </div>
     {% endblock %}
 </body>
 </html>

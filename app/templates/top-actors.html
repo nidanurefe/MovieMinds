@@ -11,15 +11,28 @@
 
     {% block content %}
 
-        <div class="content">
+        <div class="actors-container">
             <h1>Top Actors</h1>
-            <ul>
+            <div class="actors-grid">
                 {% for actor in actors %}
-                    <li>{{ actor.name }} - {{ actor.fav_count }} favourites</li>
+                    <div class="actor-card">
+                        <div class="actor-image">
+                            {% if actor.img_url %}
+                                <img src="{{ actor.img_url }}" alt="{{ actor.name }}'s image">
+                            {% else %}
+                                <p>No image available</p>
+                            {% endif %}
+                        </div>
+                        <div class="actor-details">
+                            <h2>{{ actor.name }}</h2>
+                            <p>{{ actor.fav_count }} favorites</p>
+                        </div>
+                        <button class="add-favorite-btn">Add Favorite</button>
+                    </div>
                 {% endfor %}
-            </ul>
+            </div>
         </div>
-    </div>
+
     {% endblock %}
 </body>
 </html>

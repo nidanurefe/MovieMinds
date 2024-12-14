@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Favourite Actors</title>
-    <link rel="stylesheet" href="/static/main.css">
+    <title>Add Review</title>
+    <link rel="stylesheet" href="/static/add-review.css">
 </head>
 <body>
     {% extends 'base.html' %}
@@ -12,14 +12,17 @@
     <h1>Add Review</h1>
     <form method="POST">
         <label>Movie:</label><br>
-        <input type="text" name="movie" required><br>
+        <select name="movie_id" required>
+            <option value="" disabled selected>Select a movie</option>
+            {% for movie in movies %}
+                <option value="{{ movie[0] }}">{{ movie[1] }}</option>
+            {% endfor %}
+        </select><br>
+        
         <label>Review:</label><br>
         <textarea name="review" required></textarea><br>
         <button type="submit">Add Review</button>
     </form>
     {% endblock %}
-
-
-
 </body>
 </html>

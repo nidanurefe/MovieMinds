@@ -125,7 +125,8 @@ def favourite_actors():
     cursor.execute("""
         SELECT 
             actors.id,
-            actors.name 
+            actors.name,
+            actors.img_url  
         FROM actors
         JOIN user_favorite_actors ON actors.id = user_favorite_actors.actor_id
         WHERE user_favorite_actors.user_id = %s
@@ -135,6 +136,7 @@ def favourite_actors():
     cursor.close()
 
     return render_template('favourite-actors.html', actors=actors)
+
 
 
 # Route to handle adding favorite actors
@@ -297,7 +299,7 @@ def profile():
 def top_actors():
     cursor = app.db.cursor()
     cursor.execute("""
-        SELECT actors.id, actors.name, COUNT(user_favorite_actors.actor_id) AS fav_count
+        SELECT actors.id, actors.name, actors.img_url, COUNT(user_favorite_actors.actor_id) AS fav_count
         FROM actors
         JOIN user_favorite_actors ON actors.id = user_favorite_actors.actor_id
         GROUP BY actors.id
@@ -309,6 +311,7 @@ def top_actors():
     cursor.close()
 
     return render_template('top-actors.html', actors=actors)
+
 
 
 @app.route('/top-movies')
@@ -391,16 +394,25 @@ def edit_review(review_id):
 
 
 
-@app.route('/reviews/all')
+@app.route('/reviews/all', methods=['GET', 'POST'])
 def review_all():
     cursor = app.db.cursor()
 
+    # Filmleri alın
+    cursor.execute("""
+        SELECT id, title FROM movies
+    """)
+    columns = [col[0] for col in cursor.description]
+    movies = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    # Yorumları alın
     cursor.execute("""
         SELECT 
             reviews.id,
             users.username AS user,
             movies.title AS movie,
-            reviews.review_text 
+            reviews.review_text,
+            movies.cover_image AS cover_image  
         FROM reviews
         JOIN users ON reviews.user_id = users.id
         JOIN movies ON reviews.movie_id = movies.id
@@ -409,7 +421,9 @@ def review_all():
     reviews = [dict(zip(columns, row)) for row in cursor.fetchall()]
     cursor.close()
 
-    return render_template('all-reviews.html', reviews=reviews)
+    return render_template('all-reviews.html', reviews=reviews, movies=movies)
+
+
 
 @app.route('/show-session-id')
 def show_session_id():
@@ -419,15 +433,22 @@ def show_session_id():
 @app.route('/review/add', methods=['GET', 'POST'])
 def add_review():
     if request.method == 'POST':
-        movie = request.form.get('movie')
+        movie_id = request.form.get('movie_id')
         review = request.form.get('review')
         user = "current_user"  # Mevcut oturumdaki kullanıcı adı (yerine gerçek kullanıcı doğrulaması eklenecek)
         review_id = len(reviews) + 1
-        reviews.append({'id': review_id, 'user': user, 'movie': movie, 'review': review})
+        reviews.append({'id': review_id, 'user': user, 'movie_id': movie_id, 'review': review})
         return redirect(url_for('my_reviews'))
-    return render_template('add-review.html')
+    
+    # Mevcut filmleri veritabanından al
+    cursor = app.db.cursor()
+    cursor.execute("SELECT id, title FROM movies")  # Filmler tablosundan id ve başlıkları al
+    movies = cursor.fetchall()
+    cursor.close()
 
-from flask import session, render_template
+    return render_template('add-review.html', movies=movies)
+
+
 
 @app.route('/reviews/my-reviews')
 def my_reviews():
@@ -437,16 +458,17 @@ def my_reviews():
     user_id = session['user_id']  # Giriş yapan kullanıcının ID'sini alın
     cursor = app.db.cursor()
 
-    # Giriş yapan kullanıcıya ait yorumları al
+    # Giriş yapan kullanıcıya ait yorumları al, poster resmini de al
     cursor.execute("""
         SELECT 
             reviews.id,
             movies.title AS movie,
-            reviews.review_text 
+            reviews.review_text,
+            movies.cover_image AS cover_image  -- Poster resmini alıyoruz
         FROM reviews
         JOIN movies ON reviews.movie_id = movies.id
         WHERE reviews.user_id = %s
-    """, (user_id,))
+    """, (user_id, ))
     
     columns = [col[0] for col in cursor.description]
     user_reviews = [dict(zip(columns, row)) for row in cursor.fetchall()]

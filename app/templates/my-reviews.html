@@ -4,24 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Reviews</title>
+    <link rel="stylesheet" href="/static/main.css">
 </head>
 <body>
     {% extends 'base.html' %}
 
     {% block content %}
     <h1>My Reviews</h1>
+
     {% if reviews %}
-        <ul>
+        <div class="reviews-container">
             {% for review in reviews %}
-                <li>
-                    <strong>Movie:</strong> {{ review.movie }}<br>
-                    <strong>Review:</strong> {{ review.review }}
-                </li>
+            <div class="review-card">
+                <div class="movie-poster">
+                    {% if review.cover_image %}
+                        <img src="{{ review.cover_image }}" alt="{{ review.movie }}">
+                    {% else %}
+                        <p class="no-poster">No poster available</p>
+                    {% endif %}
+                </div>
+                <div class="review-details">
+                    <h3>{{ review.user }} reviewed <em>{{ review.movie }}</em></h3>
+                    <p>"{{ review.review_text }}"</p>
+                </div>
+            </div>
             {% endfor %}
-        </ul>
+        </div>
     {% else %}
         <p>You have not posted any reviews yet.</p>
     {% endif %}
     {% endblock %}
+
 </body>
 </html>

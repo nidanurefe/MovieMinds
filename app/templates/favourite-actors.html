@@ -10,18 +10,27 @@
     {% extends "base.html" %}
 
     {% block content %}
-        <h1>Your Favorite Actors</h1>
-        {% if actors %}
-            <ul>
-            {% for actor in actors %}
-                <li>{{ actor.name }}</li>
-            {% endfor %}
-            </ul>
-        {% else %}
-            <p>You have no favorite actors yet.</p>
-        {% endif %}
+    <h1>Your Favorite Actors</h1>
+    {% if actors %}
+        <div class="actors-container">
+            <div class="actors-grid">
+                {% for actor in actors %}
+                <div class="actor-card">
+                    <div class="actor-image">
+                        {% if actor.img_url %}
+                            <img src="{{ actor.img_url }}" alt="{{ actor.name }}">
+                        {% else %}
+                            <p>No image available</p>
+                        {% endif %}
+                    </div>
+                    
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% else %}
+        <p>You have no favorite actors yet.</p>
+    {% endif %}
     {% endblock %}
-    
-
 </body>
 </html>
