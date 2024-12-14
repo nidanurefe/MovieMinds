@@ -141,13 +141,13 @@ def favourite_actors():
 
 @app.route('/add_favorite_actor', methods=['POST'])
 def add_favorite_actor():
-    
     data = request.get_json()
     actor_id = data.get('actor_id')
     user_id = session.get('user_id')
 
     if not user_id:
         return jsonify({"error": "User not logged in."}), 401
+
     try:
         cursor = app.db.cursor()
 
@@ -156,12 +156,12 @@ def add_favorite_actor():
             "SELECT COUNT(*) FROM user_favorite_actors WHERE user_id = %s AND actor_id = %s",
             (user_id, actor_id)
         )
+        count = cursor.fetchone()[0]  # Sonucu bir değişkene atayın
         
-        if cursor.fetchone():
-            print(cursor.fetchone())
+        if count > 0:  # Eğer veri zaten varsa
             return jsonify({"message": "Actor is already in your favorites!"}), 200
 
-        # Veri ekle
+        # Favorilere ekle
         cursor.execute(
             "INSERT INTO user_favorite_actors (user_id, actor_id) VALUES (%s, %s)",
             (user_id, actor_id)
@@ -507,21 +507,50 @@ def show_session_id():
 
 @app.route('/review/add', methods=['GET', 'POST'])
 def add_review():
+    user_id = session.get('user_id')
+    
+    if not user_id:
+        return redirect('/login')  # Kullanıcı giriş yapmamışsa login sayfasına yönlendirin.
+
     if request.method == 'POST':
         movie_id = request.form.get('movie_id')
         review = request.form.get('review')
-        user = "current_user"  # Mevcut oturumdaki kullanıcı adı (yerine gerçek kullanıcı doğrulaması eklenecek)
-        review_id = len(reviews) + 1
-        reviews.append({'id': review_id, 'user': user, 'movie_id': movie_id, 'review': review})
-        return redirect(url_for('my_reviews'))
-    
-    # Mevcut filmleri veritabanından al
-    cursor = app.db.cursor()
-    cursor.execute("SELECT id, title FROM movies")  # Filmler tablosundan id ve başlıkları al
-    movies = cursor.fetchall()
-    cursor.close()
+        rating = request.form.get('rating')
 
-    return render_template('add-review.html', movies=movies)
+        if not movie_id or not review or not rating:
+            return render_template('add-review.html', error="All fields are required.", movies=fetch_movies())
+
+        try:
+            cursor = app.db.cursor()
+
+            # Review ekleme
+            cursor.execute(
+                """
+                INSERT INTO reviews (user_id, movie_id, review_text, rating) 
+                VALUES (%s, %s, %s, %s)
+                """,
+                (user_id, movie_id, review, rating)
+            )
+            app.db.commit()
+            cursor.close()
+
+            return redirect('/reviews/my-reviews')  # Başarılı işlemden sonra incelemeler sayfasına yönlendirin.
+        except Exception as e:
+            app.db.rollback()  # Hata durumunda işlemi geri alın.
+            return render_template('add-review.html', error=str(e), movies=fetch_movies())
+
+    # GET isteği: Film listesini çekip formu doldur
+    return render_template('add-review.html', movies=fetch_movies())
+
+def fetch_movies():
+    try:
+        cursor = app.db.cursor()
+        cursor.execute("SELECT id, title FROM movies ORDER BY title ASC")
+        movies = cursor.fetchall()
+        cursor.close()
+        return movies
+    except Exception as e:
+        return []
 
 
 

@@ -12,18 +12,6 @@
     {% block content %}
     <h1>Movie Reviews</h1>
 
-    <form method="POST">
-        <label for="movie">Select a movie:</label>
-        <select name="movie_id" id="movie">
-            {% for movie in movies %}
-            <option value="{{ movie.id }}">{{ movie.title }}</option>
-            {% endfor %}
-        </select>
-        <label for="review">Your Review:</label>
-        <textarea name="review" id="review" required></textarea>
-        <button type="submit">Submit</button>
-    </form>
-
     <!-- Yorumları listeleme -->
     <h2>All Reviews</h2>
     <div class="reviews-container">
