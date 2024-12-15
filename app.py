@@ -513,7 +513,7 @@ def my_reviews():
             reviews.id,
             movies.title AS movie,
             reviews.review_text,
-            movies.cover_image AS cover_image  -- Poster resmini alıyoruz
+            movies.cover_image AS cover_image  
         FROM reviews
         JOIN movies ON reviews.movie_id = movies.id
         WHERE reviews.user_id = %s

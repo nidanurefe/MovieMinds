@@ -63,6 +63,12 @@ body {
     flex-wrap: wrap;
     gap: 30px;
     justify-content: space-between;
+    
+}
+
+.movie:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
 }
 
 .movie {
@@ -72,6 +78,7 @@ body {
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     text-align: left;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .movie img {
@@ -143,8 +150,19 @@ body {
     color: #777;
 }
 
-.add-favorite-btn {
-    background-color: #007bff;
+.add-favorite-btn, .remove-favorite-btn {
+    background-color: #4CAF5f;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    font-size: 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.remove-favorite-btn {
+    background-color:  #6a6a6a;
     color: #fff;
     border: none;
     padding: 10px 20px;
@@ -155,7 +173,7 @@ body {
 }
 
 .add-favorite-btn:hover {
-    background-color: #0056b3;
+    background-color: #31743f;
 }
 
 
@@ -239,10 +257,11 @@ label {
 }
 
 .apply-button {
-    background-color: #483C83;
+    background-color: #4CAF50;
     color: white;
     border: none;
     padding: 0px 10px;
+    margin: 0px;
     font-size: 1rem;
     cursor: pointer;
     border-radius: 5px;

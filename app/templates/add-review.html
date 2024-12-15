@@ -5,12 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Review</title>
     <link rel="stylesheet" href="/static/add-review.css">
+    <style>
+        .stars {
+            display: flex;
+            flex-direction: row;
+            font-size: 2rem;
+            cursor: pointer;
+        }
+        .star {
+            color: lightgray;
+        }
+        .star.selected {
+            color: gold;
+        }
+    </style>
 </head>
 <body>
     {% extends 'base.html' %}
     {% block content %}
     <h1>Add Review</h1>
-    
+
     <!-- Error Message -->
     {% if error %}
         <p style="color: red;">{{ error }}</p>
@@ -28,11 +42,41 @@
         <label>Review:</label><br>
         <textarea name="review" required></textarea><br>
         
-        <label>Rating (1.0 - 5.0):</label><br>
-        <input style = "margin-bottom: 15px; padding-top: 0px;" type="number" name="rating" step="0.1" min="1.0" max="5.0" required><br>
-        
+        <label>Rating:</label><br>
+        <div class="stars" id="star-container">
+            <span class="star" data-value="1">&#9733;</span>
+            <span class="star" data-value="2">&#9733;</span>
+            <span class="star" data-value="3">&#9733;</span>
+            <span class="star" data-value="4">&#9733;</span>
+            <span class="star" data-value="5">&#9733;</span>
+        </div>
+        <input type="hidden" name="rating" id="rating" required>
+        <br>
+
         <button type="submit">Add Review</button>
     </form>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const stars = document.querySelectorAll('.star');
+            const ratingInput = document.getElementById('rating');
+
+            stars.forEach(star => {
+                star.addEventListener('click', () => {
+                    const value = star.getAttribute('data-value');
+                    ratingInput.value = value;
+
+                    // Highlight the selected stars
+                    stars.forEach(s => {
+                        s.classList.remove('selected');
+                        if (s.getAttribute('data-value') <= value) {
+                            s.classList.add('selected');
+                        }
+                    });
+                });
+            });
+        });
+    </script>
     {% endblock %}
 </body>
 </html>

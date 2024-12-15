@@ -51,12 +51,10 @@
         </div>
         <script>
             document.addEventListener("DOMContentLoaded", function () {
-         console.log("JavaScript is loaded"); // Eklendi
          const favButtons = document.querySelectorAll(".fav-button");
          
          favButtons.forEach(button => {
              button.addEventListener("click", function () {
-                 console.log("Button clicked"); // Eklendi
                  const movieId = this.getAttribute("data-movie-id");
      
                  fetch("/add_favourite", {
@@ -68,7 +66,6 @@
                  })
                  .then(response => response.json())
                  .then(data => {
-                     console.log(data); // Eklendi
                      if (data.error) {
                          alert(data.error);
                      } else {

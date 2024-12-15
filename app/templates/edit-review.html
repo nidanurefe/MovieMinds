@@ -69,6 +69,21 @@ button:hover {
     max-width: 1000px;
 }
 
+.stars {
+    display: flex;
+    flex-direction: row;
+    font-size: 2rem;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+.star {
+    color: lightgray;
+}
+
+.star.selected {
+    color: gold;
+}
     </style>
 </head>
 <body>
@@ -80,8 +95,52 @@ button:hover {
     <form method="POST">
         <label for="review_text">Review:</label>
         <textarea id="review_text" name="review_text" rows="4" cols="50">{{ review.review_text }}</textarea>
+
+        <label for="rating">Rating:</label>
+        <div class="stars" id="star-container">
+            <span class="star" data-value="1">&#9733;</span>
+            <span class="star" data-value="2">&#9733;</span>
+            <span class="star" data-value="3">&#9733;</span>
+            <span class="star" data-value="4">&#9733;</span>
+            <span class="star" data-value="5">&#9733;</span>
+        </div>
+        <input type="hidden" name="rating" id="rating" value="{{ review.rating }}" required>
+
         <button type="submit">Save Changes</button>
     </form>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const stars = document.querySelectorAll('.star');
+            const ratingInput = document.getElementById('rating');
+
+            // Set initial stars based on existing rating
+            const currentRating = parseInt(ratingInput.value, 10);
+            if (currentRating) {
+                stars.forEach(star => {
+                    if (parseInt(star.getAttribute('data-value'), 10) <= currentRating) {
+                        star.classList.add('selected');
+                    }
+                });
+            }
+
+            // Add click event to stars
+            stars.forEach(star => {
+                star.addEventListener('click', () => {
+                    const value = star.getAttribute('data-value');
+                    ratingInput.value = value;
+
+                    // Highlight the selected stars
+                    stars.forEach(s => {
+                        s.classList.remove('selected');
+                        if (s.getAttribute('data-value') <= value) {
+                            s.classList.add('selected');
+                        }
+                    });
+                });
+            });
+        });
+    </script>
     {% endblock %}
 </body>
 </html>
