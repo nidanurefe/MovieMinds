@@ -33,7 +33,7 @@ def index():
     # Query to fetch movies with genre and producer names
     query = """
         SELECT 
-            movies.id,
+            movies.tmdb_id,
             movies.title, 
             movies.release_year, 
             movies.rating, 
@@ -274,7 +274,7 @@ def favourite_movies():
     # Query to get the user's favourite movies
     cursor.execute("""
         SELECT 
-            movies.id,
+            movies.tmdb_id,
             movies.title, 
             movies.release_year, 
             movies.rating, 
@@ -282,7 +282,7 @@ def favourite_movies():
             genres.name AS genre_name,
             producers.name AS producer_name
         FROM movies
-        JOIN user_favorite_movies ON movies.id = user_favorite_movies.movie_id
+        JOIN user_favorite_movies ON movies.tmdb_id = user_favorite_movies.movie_id
         JOIN genres ON movies.genre_id = genres.id
         JOIN producers ON movies.producer_id = producers.id
         WHERE user_favorite_movies.user_id = %s
@@ -339,7 +339,7 @@ def top_movies():
         cursor.execute(
             """
             SELECT 
-                movies.id,
+                movies.tmdb_id,
                 movies.title, 
                 movies.release_year, 
                 movies.rating, 
@@ -350,8 +350,8 @@ def top_movies():
             FROM movies
             JOIN genres ON movies.genre_id = genres.id
             JOIN producers ON movies.producer_id = producers.id
-            LEFT JOIN user_favorite_movies ON movies.id = user_favorite_movies.movie_id
-            GROUP BY movies.id, genres.name, producers.name
+            LEFT JOIN user_favorite_movies ON movies.tmdb_id = user_favorite_movies.movie_id
+            GROUP BY movies.tmdb_id, genres.name, producers.name
             ORDER BY fav_count DESC
             LIMIT 8
             """
@@ -432,7 +432,7 @@ def review_all():
             movies.cover_image AS cover_image  
         FROM reviews
         JOIN users ON reviews.user_id = users.id
-        JOIN movies ON reviews.movie_id = movies.id
+        JOIN movies ON reviews.movie_id = movies.tmdb_id
     """)
     columns = [col[0] for col in cursor.description] # Get column names
     reviews = [dict(zip(columns, row)) for row in cursor.fetchall()] # Fetch all reviews
@@ -515,7 +515,7 @@ def my_reviews():
             reviews.review_text,
             movies.cover_image AS cover_image  
         FROM reviews
-        JOIN movies ON reviews.movie_id = movies.id
+        JOIN movies ON reviews.movie_id = movies.tmdb_id
         WHERE reviews.user_id = %s
     """, (user_id, ))
     

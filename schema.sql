@@ -14,14 +14,14 @@ CREATE TABLE producers (
 );
 
 CREATE TABLE movies (
-    id INT NOT NULL AUTO_INCREMENT,
+    tmdb_id INT NOT NULL,
     title VARCHAR(255) NOT NULL,
     release_year INT NOT NULL,
     rating DECIMAL(3,1) NOT NULL,
     genre_id INT NOT NULL,
     cover_image VARCHAR(255),
     producer_id INT NOT NULL,
-    PRIMARY KEY (id),
+    PRIMARY KEY (tmdb_id),
     FOREIGN KEY (genre_id) REFERENCES genres(id),
     FOREIGN KEY (producer_id) REFERENCES producers(id)
 );
@@ -37,7 +37,7 @@ CREATE TABLE movie_actors (
     movie_id INT NOT NULL,
     actor_id INT NOT NULL,
     PRIMARY KEY (movie_id, actor_id),
-    FOREIGN KEY (movie_id) REFERENCES movies(id) ON DELETE CASCADE,
+    FOREIGN KEY (movie_id) REFERENCES movies(tmdb_id) ON DELETE CASCADE,
     FOREIGN KEY (actor_id) REFERENCES actors(id) ON DELETE CASCADE
 );
 
@@ -56,7 +56,7 @@ CREATE TABLE user_favorite_movies (
     movie_id INT NOT NULL,
     PRIMARY KEY (user_id, movie_id),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (movie_id) REFERENCES movies(id) ON DELETE CASCADE
+    FOREIGN KEY (movie_id) REFERENCES movies(tmdb_id) ON DELETE CASCADE
 );
 
 CREATE TABLE user_favorite_actors (
@@ -74,6 +74,6 @@ CREATE TABLE reviews (
     review_text TEXT NOT NULL,
     rating DECIMAL(3,1) NOT NULL,
     PRIMARY KEY (id),
-    FOREIGN KEY (movie_id) REFERENCES movies(id) ON DELETE CASCADE,
+    FOREIGN KEY (movie_id) REFERENCES movies(tmdb_id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );

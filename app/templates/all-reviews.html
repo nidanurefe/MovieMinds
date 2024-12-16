@@ -19,7 +19,7 @@
         <div class="review-card">
             <div class="movie-poster">
                 {% if review.cover_image %}
-                    <img src="{{ review.cover_image }}" alt="{{ review.movie }}">
+                    <img src="https://image.tmdb.org/t/p/w500{{ review.cover_image }}" alt="{{ review.movie }}">
                 {% else %}
                     <p>No poster available</p>
                 {% endif %}
