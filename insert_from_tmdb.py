@@ -8,6 +8,7 @@ load_dotenv()
 API_KEY = os.getenv('API_KEY') # Get the API key from the environment variables
 BASE_URL = 'https://api.themoviedb.org/3' # Base URL for the TMDB API
 IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500" # Base URL for the images
+PAGE_COUNT = 2 # Number of pages to fetch from the API
 
 # ***** Function to connect to the database *****
 def get_db_connection(app)->pymysql.Connection:
@@ -24,7 +25,7 @@ def get_db_connection(app)->pymysql.Connection:
 # ***** Functions to fetch data from API *****
 
 # Function to fetch movies from the TMDB API
-def get_movies(page=1)->dict:
+def get_movies(page=PAGE_COUNT)->dict:
     url:str = f"{BASE_URL}/discover/movie" # Endpoint to fetch movies
     headers:list = { # Headers to be sent with the request
         "Authorization": f"Bearer {API_KEY}",
@@ -101,7 +102,7 @@ def insert_movie(connection, movie) -> None:
                 producer_id = producers[0]['id'] # Get the ID of the first producer
                 producer_name = producers[0]['name'] # Get the name of the first producer
                 insert_producer(connection, producer_id, producer_name) # Insert the producer into the database
-        print(movie_details['production_companies'][0]) # Print the producer of the movie for debugging purposes
+        # print(movie_details['production_companies'][0]) # Print the producer of the movie for debugging purposes
         poster_path:str = IMAGE_BASE_URL + movie.get('poster_path', '') # Get the poster path of the movie
 
         check_sql = "SELECT COUNT(*) AS count FROM movies WHERE tmdb_id = %s" # SQL query to check if the movie already exists
@@ -227,7 +228,7 @@ def insert_all_genres(connection)->None:
 def main():
     connection:pymysql.Connection = get_db_connection(app) # Get a database connection
     insert_all_genres(connection)   # Insert all genres into the database
-    movies_data:dict = get_movies(page=1) # Fetch the movies
+    movies_data:dict = get_movies(page=PAGE_COUNT) # Fetch the movies
       
     if movies_data: # If the movies are fetched successfully
         for movie in movies_data['results']: # Iterate over the movies

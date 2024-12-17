@@ -5,76 +5,208 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Top Actors</title>
     <link rel="stylesheet" href="/static/main.css">
+    <style>
+        /* Aktör Kartları */
+        .actors-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .actor-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            text-align: center;
+            width: 200px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .actor-card:hover {
+            transform: scale(1.05);
+        }
+
+        .actor-card img {
+            width: 100%;
+            border-radius: 8px 8px 0 0;
+            height: auto;
+            object-fit: cover;
+        }
+
+        .add-favorite-btn {
+            background-color: #ff4757;
+            color: #fff;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.3s ease;
+        }
+
+        .add-favorite-btn:hover {
+            background-color: #e84118;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 800px;
+            position: relative;
+            text-align: center;
+        }
+
+        .close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #aaa;
+        }
+
+        .close:hover {
+            color: black;
+        }
+
+        /* Film Listesi */
+        .movie-list {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 20px;
+            overflow-x: auto;
+            padding: 10px 0;
+        }
+
+        .movie-card {
+            flex: 0 0 200px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            background-color: #f9f9f9;
+        }
+
+        .movie-card img {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+    </style>
 </head>
 <body>
     {% extends 'base.html' %}
 
     {% block content %}
-
-        <div class="actors-container">
-            <h1>Top Actors</h1>
-            <div class="actors-grid">
-                {% for actor in actors %}
-                <div class="actor-card" data-actor-id="{{ actor.id }}">
-                    <div class="actor-image">
-                        {% if actor.img_url %}
-                            <img src="{{ actor.img_url }}" alt="{{ actor.name }}'s image">
-                        {% else %}
-                            <p>No image available</p>
-                        {% endif %}
-                    </div>
-                    <div class="actor-details">
-                        <h2>{{ actor.name }}</h2>
-                        <p>{{ actor.fav_count }} favorites</p>
-                    </div>
-                    <button class="add-favorite-btn">Add Favorite</button>
-                </div>
-                
-                {% endfor %}
-            </div>
+    <h1>Top Actors</h1>
+    <div class="actors-grid">
+        {% for actor in actors %}
+        <div class="actor-card" data-actor-id="{{ actor.id }}">
+            <img src="{{ actor.img_url or 'https://via.placeholder.com/200x200' }}" alt="{{ actor.name }}">
+            <h2>{{ actor.name }}</h2>
+            <p>{{ actor.fav_count }} favorites</p>
+            <button class="add-favorite-btn">Add to Favorites</button>
         </div>
+        {% endfor %}
+    </div>
 
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.add-favorite-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const actorCard = this.closest('.actor-card');
-            const actorName = actorCard.querySelector('h2').textContent; 
-            const actorId = actorCard.getAttribute('data-actor-id'); 
+    <!-- Modal -->
+    <div id="movieModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Movies</h2>
+            <div id="moviesContainer" class="movie-list"></div>
+        </div>
+    </div>
 
-            if (!actorId) {
-                console.error('Actor ID not found!');
-                return;
-            }
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const modal = document.getElementById("movieModal");
+            const moviesContainer = document.getElementById("moviesContainer");
+            const closeModal = document.querySelector(".close");
 
-            fetch('/add_favorite_actor', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ actor_id: actorId })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    alert(`Error: ${data.error}`);
-                } else {
-                    alert(`${actorName} added to your favorites!`);
-                    // Favori sayısını güncelle
-                    const favCountElem = actorCard.querySelector('p');
-                    const currentFavCount = parseInt(favCountElem.textContent) || 0;
-                    favCountElem.textContent = `${currentFavCount + 1} favorites`;
-                }
-            })
-            .catch(error => {
-                console.error('Error adding favorite:', error);
+            // Modal kapama
+            closeModal.addEventListener("click", function () {
+                modal.style.display = "none";
+                moviesContainer.innerHTML = ""; // Temizle
+            });
+
+            // Aktör kartına tıklama
+            document.querySelectorAll(".actor-card").forEach(card => {
+                card.addEventListener("click", function () {
+                    const actorId = this.getAttribute("data-actor-id");
+
+                    fetch(`/get_movies_by_actor/${actorId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            moviesContainer.innerHTML = ""; // Temizle
+
+                            if (data.movies.length > 0) {
+                                data.movies.forEach(movie => {
+                                    const movieDiv = document.createElement("div");
+                                    movieDiv.className = "movie-card";
+                                    movieDiv.innerHTML = `
+                                        <img src="${movie.cover_image || 'https://via.placeholder.com/150'}" alt="${movie.title}">
+                                        <h3>${movie.title}</h3>
+                                        <p>Year: ${movie.year}</p>
+                                    `;
+                                    moviesContainer.appendChild(movieDiv);
+                                });
+                            } else {
+                                moviesContainer.innerHTML = "<p>No movies found for this actor.</p>";
+                            }
+
+                            modal.style.display = "block";
+                        })
+                        .catch(error => console.error("Error fetching movies:", error));
+                });
+            });
+
+            // Favorilere ekleme
+            document.querySelectorAll(".add-favorite-btn").forEach(button => {
+                button.addEventListener("click", function (e) {
+                    e.stopPropagation();
+                    const actorCard = this.closest('.actor-card');
+                    const actorName = actorCard.querySelector('h2').textContent;
+                    const actorId = actorCard.getAttribute('data-actor-id'); 
+
+                    fetch('/add_favorite_actor', {
+                        method: 'POST',
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ actor_id: actorId })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        alert(data.message || data.error);
+                        if (data.message) {
+                            // Favori sayısını güncelle
+                            const favCountElem = actorCard.querySelector('p');
+                            const currentFavCount = parseInt(favCountElem.textContent) || 0;
+                            favCountElem.textContent = `${currentFavCount + 1} favorites`;
+                        }
+                    })
+                    .catch(error => console.error("Error adding favorite:", error));
+                });
             });
         });
-    });
-});
-
-        </script>
-
+    </script>
     {% endblock %}
 </body>
 </html>

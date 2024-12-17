@@ -371,6 +371,36 @@ def top_movies():
 
     return render_template('top-movies.html', movies=movies) # Render the template with movies
 
+@app.route('/get_actors/<int:movie_id>')
+def get_actors(movie_id):
+    cursor = app.db.cursor()
+    cursor.execute("""
+        SELECT actors.name, actors.img_url
+        FROM actors
+        JOIN movie_actors ON actors.id = movie_actors.actor_id
+        WHERE movie_actors.movie_id = %s
+    """, (movie_id,))
+    actors = [{"name": row[0], "img_url": row[1]} for row in cursor.fetchall()]
+    cursor.close()
+    return jsonify({"actors": actors})
+
+@app.route('/get_movies_by_actor/<int:actor_id>')
+@login_required
+def get_movies_by_actor(actor_id):
+    try:
+        cursor = app.db.cursor()
+        cursor.execute("""
+            SELECT movies.tmdb_id, movies.title, movies.cover_image, movies.release_year AS year
+            FROM movies
+            JOIN movie_actors ON movies.tmdb_id = movie_actors.movie_id
+            WHERE movie_actors.actor_id = %s
+        """, (actor_id,))
+        movies = [{"id": row[0], "title": row[1], "cover_image": row[2], "year": row[3]} for row in cursor.fetchall()]
+        cursor.close()
+        return jsonify({"movies": movies})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 
 # ********** ROUTES FOR PROFILE **********
