@@ -22,7 +22,7 @@
                 {% if movie.cover_image %}
                     <img src="{{ movie.cover_image }}" alt="Cover Image for {{ movie.title }}" width="200">
                 {% endif %}
-                <button class="fav-button" data-movie-id="{{ movie.id }}">Add Favourite</button>
+                <button class="fav-button" data-movie-id="{{ movie.tmdb_id }}">Add Favourite</button>
             </div>
         {% endfor %}
     </div>

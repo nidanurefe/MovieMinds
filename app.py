@@ -1,5 +1,5 @@
 from app import createApp
-from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
+from flask import render_template, request, redirect, url_for, flash, session, jsonify
 
 app = createApp()
 app.secret_key = "your_secret_key"
@@ -417,7 +417,7 @@ def review_all():
 
     # Get all movies
     cursor.execute("""
-        SELECT id, title FROM movies
+        SELECT tmdb_id, title FROM movies
     """)
     columns = [col[0] for col in cursor.description]
     movies = [dict(zip(columns, row)) for row in cursor.fetchall()]
@@ -486,7 +486,7 @@ def fetch_movies():
 
     try:
         # Select movies from the database
-        cursor.execute("SELECT id, title FROM movies")  
+        cursor.execute("SELECT tmdb_id, title FROM movies")  
         movies = cursor.fetchall()  # Select movies from the database
 
         # Close the cursor
