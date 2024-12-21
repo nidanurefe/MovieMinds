@@ -6,7 +6,7 @@
     <title>Top Actors</title>
     <link rel="stylesheet" href="/static/main.css">
     <style>
-        /* Aktör Kartları */
+        /* Actor Cards */
         .actors-grid {
             display: flex;
             flex-wrap: wrap;
@@ -142,13 +142,13 @@
             const moviesContainer = document.getElementById("moviesContainer");
             const closeModal = document.querySelector(".close");
 
-            // Modal kapama
+            // Close Modal
             closeModal.addEventListener("click", function () {
                 modal.style.display = "none";
                 moviesContainer.innerHTML = ""; // Temizle
             });
 
-            // Aktör kartına tıklama
+            // Click on actor card
             document.querySelectorAll(".actor-card").forEach(card => {
                 card.addEventListener("click", function () {
                     const actorId = this.getAttribute("data-actor-id");
@@ -179,7 +179,7 @@
                 });
             });
 
-            // Favorilere ekleme
+            // Add favorites
             document.querySelectorAll(".add-favorite-btn").forEach(button => {
                 button.addEventListener("click", function (e) {
                     e.stopPropagation();
@@ -195,8 +195,8 @@
                     .then(response => response.json())
                     .then(data => {
                         alert(data.message || data.error);
-                        if (data.message) {
-                            // Favori sayısını güncelle
+                        if (data.message.includes('added')) {
+                            // Update favorites
                             const favCountElem = actorCard.querySelector('p');
                             const currentFavCount = parseInt(favCountElem.textContent) || 0;
                             favCountElem.textContent = `${currentFavCount + 1} favorites`;

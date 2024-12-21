@@ -15,7 +15,7 @@
     <div class="movie-container">
         {% if movies %}
             {% for movie in movies %}
-                <div class="movie" id="movie-{{ movie.id }}">
+                <div class="movie" id="movie-{{ movie.tmdb_id }}">
                     <h2>{{ movie.title }}</h2>
                     <p><strong>Release Year:</strong> {{ movie.release_year }}</p>
                     <p><strong>Rating:</strong> {{ movie.rating }}</p>
@@ -25,7 +25,7 @@
                     {% if movie.cover_image %}
                         <img src="{{ movie.cover_image }}" alt="Cover Image for {{ movie.title }}" width="200">
                     {% endif %}
-                    <button class="remove-favorite-btn" data-movie-id="{{ movie.id }}">Remove from Favourites</button>
+                    <button class="remove-favorite-btn" data-movie-id="{{ movie.tmdb_id }}">Remove from Favourites</button>
                 </div>
             {% endfor %}
         {% else %}
@@ -41,7 +41,7 @@
             return;
         }
     
-        document.querySelectorAll('.remove-fav-button').forEach(button => {
+        document.querySelectorAll('.remove-favorite-btn').forEach(button => {
             button.addEventListener('click', function() {
                 const movieId = this.getAttribute('data-movie-id');
                 
