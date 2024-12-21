@@ -6,7 +6,7 @@
     <title>Movie Review</title>
     <link rel="stylesheet" href="/static/main.css">
     <style>
-        /* Film kartı stil */
+        /* Movie Card */
         .movie {
             position: relative;
             border: 1px solid #ddd;
@@ -45,7 +45,7 @@
             background-color: #e84118;
         }
 
-        /* Modal Stil */
+        /* Modal Style */
         .modal {
             display: none;
             position: fixed;
@@ -82,7 +82,7 @@
             color: black;
         }
 
-        /* Aktörler kaydırmalı stil */
+        /* Slide actors */
         .actors-container {
             display: flex;
             overflow-x: auto;
@@ -129,7 +129,7 @@
         </div>
     </form>
     
-    <!-- Film Listesi -->
+    <!-- Movie List -->
     <div class="movie-container">
         {% for movie in movies %}
         <div class="movie" data-movie-id="{{ movie.tmdb_id }}">
@@ -155,20 +155,19 @@
         </div>
     </div>
 
-    <!-- JavaScript -->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const modal = document.getElementById("actorModal");
             const actorsContainer = document.getElementById("actorsContainer");
             const closeModal = document.querySelector(".close");
 
-            // Modal kapatma
+            // Close Modal
             closeModal.addEventListener("click", function () {
                 modal.style.display = "none";
                 actorsContainer.innerHTML = ""; // Temizle
             });
 
-            // Film kartına tıklama
+            // Add click event to movie cards
             document.querySelectorAll(".movie").forEach(card => {
                 card.addEventListener("click", function () {
                     const movieId = this.getAttribute("data-movie-id");
@@ -183,7 +182,7 @@
                                     const actorDiv = document.createElement("div");
                                     actorDiv.className = "actor";
                                     actorDiv.innerHTML = `
-                                        <img src="${actor.img_url || 'https://via.placeholder.com/100'}" alt="${actor.name}">
+                                        <img src="${actor.img_url || 'https://media.istockphoto.com/id/2151669184/vector/vector-flat-illustration-in-grayscale-avatar-user-profile-person-icon-gender-neutral.jpg?s=612x612&w=0&k=20&c=UEa7oHoOL30ynvmJzSCIPrwwopJdfqzBs0q69ezQoM8='}" alt="${actor.name}">
                                         <p>${actor.name}</p>
                                     `;
                                     actorsContainer.appendChild(actorDiv);
@@ -198,7 +197,7 @@
                 });
             });
 
-            // Favori butonu
+            // favourite button click event
             document.querySelectorAll(".fav-button").forEach(button => {
                 button.addEventListener("click", function (e) {
                     e.stopPropagation(); // Kartın tıklama olayını engelle

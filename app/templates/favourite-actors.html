@@ -36,7 +36,7 @@
     {% endif %}
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Tüm 'Remove from Favorites' butonlarını seç
+            
             document.querySelectorAll('.remove-favorite-btn').forEach(button => {
                 button.addEventListener('click', function() {
                     const actorCard = this.closest('.actor-card');
@@ -61,7 +61,7 @@
                             alert(`Error: ${data.error}`);
                         } else {
                             alert(`${actorName} removed from your favorites.`);
-                            // Remove actor card from the page
+                            
                             actorCard.remove();
                         }
                     })

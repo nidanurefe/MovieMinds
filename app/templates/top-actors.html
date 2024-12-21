@@ -85,7 +85,7 @@
             color: black;
         }
 
-        /* Film Listesi */
+        /* Film List */
         .movie-list {
             display: flex;
             flex-wrap: nowrap;
@@ -145,7 +145,7 @@
             // Close Modal
             closeModal.addEventListener("click", function () {
                 modal.style.display = "none";
-                moviesContainer.innerHTML = ""; // Temizle
+                moviesContainer.innerHTML = ""; 
             });
 
             // Click on actor card
@@ -156,14 +156,14 @@
                     fetch(`/get_movies_by_actor/${actorId}`)
                         .then(response => response.json())
                         .then(data => {
-                            moviesContainer.innerHTML = ""; // Temizle
+                            moviesContainer.innerHTML = ""; 
 
                             if (data.movies.length > 0) {
                                 data.movies.forEach(movie => {
                                     const movieDiv = document.createElement("div");
                                     movieDiv.className = "movie-card";
                                     movieDiv.innerHTML = `
-                                        <img src="${movie.cover_image || 'https://via.placeholder.com/150'}" alt="${movie.title}">
+                                        <img src="${movie.cover_image || 'https://media.istockphoto.com/id/2151669184/vector/vector-flat-illustration-in-grayscale-avatar-user-profile-person-icon-gender-neutral.jpg?s=612x612&w=0&k=20&c=UEa7oHoOL30ynvmJzSCIPrwwopJdfqzBs0q69ezQoM8='}" alt="${movie.title}">
                                         <h3>${movie.title}</h3>
                                         <p>Year: ${movie.year}</p>
                                     `;
