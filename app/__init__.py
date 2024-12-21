@@ -8,7 +8,7 @@ def createApp():
     app.config['MYSQL_HOST'] = '127.0.0.1'
     app.config['MYSQL_USER'] = 'root'
     app.config['MYSQL_PASSWORD'] = 'nido123'
-    app.config['MYSQL_DB'] = 'movie_review_db'
+    app.config['MYSQL_DB'] = 'movie_review_db2'
 
     app.db = pymysql.connect(
         host = app.config['MYSQL_HOST'],

@@ -8,7 +8,7 @@ load_dotenv()
 API_KEY = os.getenv('API_KEY') # Get the API key from the environment variables
 BASE_URL = 'https://api.themoviedb.org/3' # Base URL for the TMDB API
 IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500" # Base URL for the images
-PAGE_COUNT = 2 # Number of pages to fetch from the API
+PAGE_COUNT = 1 # Number of the page to fetch from the API
 
 # ***** Function to connect to the database *****
 def get_db_connection(app)->pymysql.Connection:
@@ -110,6 +110,8 @@ def insert_movie(connection, movie) -> None:
         result:dict = cursor.fetchone() # Fetch the result of the query
  
         count:int = result['count'] if isinstance(result, dict) else result[0] # Get the count of the result
+        print("movie: ", movie['title'])
+        print("movie: ", movie_details['production_companies'])
 
         if count == 0:   # If the movie does not exist in the database
             sql = """  # SQL query to insert the movie into the database

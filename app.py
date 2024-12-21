@@ -1,5 +1,6 @@
 from app import createApp
 from flask import render_template, request, redirect, url_for, flash, session, jsonify
+import bcrypt
 
 app = createApp()
 app.secret_key = "your_secret_key"
@@ -80,10 +81,12 @@ def register():
             if existing_user: # If user exists
                 flash("Username or email already exists. Please choose a different one.", "error") # Flash an error message
                 return render_template('register.html') # Render the register template
+            # hash the password
+            hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()) # Hash the password
 
             cursor.execute( # Execute the query to insert the user
                 "INSERT INTO users (username, password, email, first_name, last_name) VALUES (%s, %s, %s, %s, %s)", 
-                (username, password, email, first_name, last_name))
+                (username, hashed_password, email, first_name, last_name))
             app.db.commit() # Commit the changes
             cursor.close() # Close the cursor
 
@@ -101,15 +104,21 @@ def login():
         password = request.form['password'] # Get password from form
  
         cursor = app.db.cursor() # Create a cursor
-        cursor.execute("SELECT * FROM users WHERE username = %s AND password = %s", (username, password)) # Check if user exists
+        cursor.execute("SELECT id, username, password FROM users WHERE username = %s", (username,)) # Check if user exists
+
         user = cursor.fetchone() # Fetch the user
 
         if user: # If user exists 
-            session['user_id'] = user[0] # Set the user ID in the session
-            session['username'] = user[1] # Set the username in the session
-            return redirect(url_for('index')) # Redirect to the index page
+            stored_password = user[2] # Veritabanında saklanan hashlenmiş şifre
+            if bcrypt.checkpw(password.encode('utf-8'), stored_password.encode('utf-8')): # Şifreyi doğrula
+                session['user_id'] = user[0] # Set the user ID in the session
+                session['username'] = user[1] # Set the username in the session
+                return redirect(url_for('index')) # Redirect to the index page
+            else:
+                flash("Invalid credentials. Please try again.", "error") # Flash an error message
         else: # If user does not exist
             flash("Invalid credentials. Please try again.", "error") # Flash an error message
+
 
     return render_template('login.html') # If the request method is GET Render the login template 
 
@@ -420,13 +429,14 @@ def profile():
         email = request.form['email'] # Get the email from the form
         first_name = request.form['first_name'] # Get the first name from the form
         last_name = request.form['last_name'] # Get the last name from the form
-        
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()) # Hash the password
+
         # Update the user details
         cursor.execute("""
             UPDATE users 
             SET username = %s, password = %s, email = %s, first_name = %s, last_name = %s 
             WHERE id = %s
-        """, (username, password, email, first_name, last_name, user_id))
+        """, (username, hashed_password, email, first_name, last_name, user_id))
         app.db.commit() # Commit the changes
         cursor.close() # Close the cursor
 
