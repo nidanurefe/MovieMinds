@@ -1,19 +1,45 @@
+from functools import wraps
 from app import createApp
-from flask import render_template, request, redirect, url_for, flash, session, jsonify
-import bcrypt
+from flask import render_template, request, redirect, url_for, flash, session, jsonify, make_response
+import bcrypt, jwt, datetime
 
-app = createApp()
+
+app = createApp() 
 app.secret_key = "your_secret_key"
 
 
-# Decorator to ensure user logged in
-def login_required(f):
-    from functools import wraps
-    @wraps(f)
+# Function to generate a JWT token for a given user ID
+def generate_token(user_id):
+    payload = {
+        'user_id': user_id,  # Include the user ID in the payload
+        'exp': datetime.datetime.now() + datetime.timedelta(hours=1)  # Set token expiration to 1 hour
+    }
+    token = jwt.encode(payload, app.secret_key, algorithm='HS256')  # Encode the payload with a secret key using HS256 algorithm
+    return token  # Return the generated token
+
+
+# Decorator to ensure that the user is authenticated via a valid token
+def token_required(f):
+    @wraps(f)  # Preserve the original function's attributes
     def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
-            flash("You need to log in first.", "error")
-            return redirect(url_for('login'))
+        token = request.cookies.get('auth_token')  # Retrieve the token from cookies
+        if not token:  # If no token is found, return an error response
+            print("No token found in request cookies")  # Debugging message
+            return jsonify({"error": "Token is missing!"}), 401  # Return a 401 Unauthorized error
+
+        try:
+            # Decode the token using the secret key and validate it
+            decoded_token = jwt.decode(token, app.secret_key, algorithms=['HS256'])
+            print(f"Decoded token: {decoded_token}")  # Debugging message to show the decoded token
+            request.user_id = decoded_token['user_id']  # Store the user ID in the request context
+        except jwt.ExpiredSignatureError:  # Handle the case where the token has expired
+            print("Token has expired")  # Debugging message
+            return jsonify({"error": "Token has expired!"}), 401  # Return a 401 Unauthorized error
+        except jwt.InvalidTokenError:  # Handle the case where the token is invalid
+            print("Invalid token")  # Debugging message
+            return jsonify({"error": "Invalid token!"}), 401  # Return a 401 Unauthorized error
+
+        # If the token is valid, proceed with the original function
         return f(*args, **kwargs)
     return decorated_function
 
@@ -113,7 +139,10 @@ def login():
             if bcrypt.checkpw(password.encode('utf-8'), stored_password.encode('utf-8')): # Şifreyi doğrula
                 session['user_id'] = user[0] # Set the user ID in the session
                 session['username'] = user[1] # Set the username in the session
-                return redirect(url_for('index')) # Redirect to the index page
+                token = generate_token(user[0])
+                response = make_response(redirect('/'))
+                response.set_cookie('auth_token', token, httponly=True, secure=False)
+                return response
             else:
                 flash("Invalid credentials. Please try again.", "error") # Flash an error message
         else: # If user does not exist
@@ -131,7 +160,7 @@ def logout():
 # ********** ROUTES FOR ACTORS  **********
 
 @app.route('/fav-actors') # Route to get user's favourite actors
-@login_required 
+@token_required
 def favourite_actors(): 
     user_id = session['user_id'] # Get the user ID from the session
 
@@ -156,7 +185,7 @@ def favourite_actors():
 
 
 @app.route('/add_favorite_actor', methods=['POST']) # Route to add a favourite actor
-@login_required 
+@token_required 
 def add_favorite_actor():
     data = request.get_json() # Get the JSON data
     actor_id = data.get('actor_id') # Get the actor ID
@@ -194,7 +223,7 @@ def add_favorite_actor():
 
 
 @app.route('/top-actors') # Route to get top actors
-@login_required 
+@token_required 
 def top_actors(): 
     cursor = app.db.cursor() # Create a cursor
     # Query to get top actors
@@ -215,7 +244,7 @@ def top_actors():
     return render_template('top-actors.html', actors=actors) # Render the template with actors
 
 @app.route('/remove_favorite_actor', methods=['POST']) # Route to remove a favourite actor
-@login_required 
+@token_required 
 def remove_favorite_actor(): 
     try: # Try to remove the actor from favourites
         data = request.get_json() # Get the JSON data
@@ -244,7 +273,7 @@ def remove_favorite_actor():
 # ********* ROUTES FOR MOVIES *********
 
 @app.route('/add_favourite', methods=['POST']) # Route to add a favourite movie
-@login_required 
+@token_required 
 def add_favourite():  
     if 'user_id' not in session: # If user is not logged in
         return jsonify({"error": "User not logged in"}), 401 # Return an error message
@@ -271,7 +300,7 @@ def add_favourite():
 
 
 @app.route('/fav-movies')  # Route to get user's favourite movies
-@login_required 
+@token_required 
 def favourite_movies(): 
     user_id = session.get('user_id') # Get the user ID from the session
 
@@ -305,7 +334,7 @@ def favourite_movies():
 
 
 @app.route('/remove_favourite', methods=['POST']) # Route to remove a favourite movie
-@login_required 
+@token_required 
 def remove_favourite(): 
     user_id = session.get('user_id') # Get the user ID from the session
 
@@ -340,7 +369,7 @@ def remove_favourite():
 
 
 @app.route('/top-movies') # Route to get top movies
-@login_required 
+@token_required 
 def top_movies(): 
     cursor = app.db.cursor()  # Create a cursor
     try: # Try to get the top movies
@@ -382,7 +411,7 @@ def top_movies():
 
 
 @app.route('/get_movies_by_actor/<int:actor_id>') # Route to get movies by actor
-@login_required
+@token_required
 def get_movies_by_actor(actor_id):
     try:
         cursor = app.db.cursor() # Create a cursor
@@ -400,6 +429,7 @@ def get_movies_by_actor(actor_id):
 
 
 @app.route('/get_actors/<int:movie_id>') # Route to get actors in a movie
+@token_required 
 def get_actors(movie_id):
     cursor = app.db.cursor() # Create a cursor
     cursor.execute("""
@@ -415,7 +445,7 @@ def get_actors(movie_id):
 # ********** ROUTES FOR PROFILE **********
 
 @app.route('/profile', methods=['GET', 'POST']) # Route to view and edit user profile
-@login_required # Ensure user is logged in
+@token_required # Ensure user is logged in
 def profile(): 
     user_id = session['user_id'] # Get the user ID from the session
 
@@ -451,7 +481,7 @@ def profile():
 
 
 @app.route('/reviews/all', methods=['GET', 'POST']) # Route to view all reviews
-@login_required 
+@token_required 
 def review_all(): 
     cursor = app.db.cursor() # Create a cursor
 
@@ -482,7 +512,7 @@ def review_all():
 
 
 @app.route('/review/add', methods=['GET', 'POST']) # Route to add a review
-@login_required 
+@token_required 
 def add_review(): 
     user_id = session.get('user_id') # Get the user ID from the session
     
@@ -539,7 +569,7 @@ def fetch_movies():
 
 
 @app.route('/reviews/my-reviews') # Route to view user's reviews
-@login_required 
+@token_required 
 def my_reviews():
     if 'user_id' not in session: # If user is not logged in
         return redirect('/login')  # Redirect to the login page
@@ -567,7 +597,7 @@ def my_reviews():
 
 
 @app.route('/review/delete/<int:review_id>', methods=['GET']) # Route to delete a review
-@login_required 
+@token_required 
 def delete_review(review_id): 
     if 'user_id' not in session: # If user is not logged in
         return redirect('/login')  # Redirect to the login page
@@ -586,7 +616,7 @@ def delete_review(review_id):
     return redirect('/reviews/my-reviews')  # Redirect to the user's reviews
 
 @app.route('/review/edit/<int:review_id>', methods=['GET', 'POST']) # Route to edit a review
-@login_required 
+@token_required 
 def edit_review(review_id): 
     if 'user_id' not in session: # If user is not logged in
         return redirect('/login')  # Redirect to the login page
