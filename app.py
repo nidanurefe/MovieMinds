@@ -362,7 +362,7 @@ def top_movies():
             LEFT JOIN user_favorite_movies ON movies.tmdb_id = user_favorite_movies.movie_id
             GROUP BY movies.tmdb_id, genres.name, producers.name
             ORDER BY fav_count DESC
-            LIMIT 8
+            LIMIT 24
             """
         )
 
@@ -552,7 +552,7 @@ def my_reviews():
         SELECT 
             reviews.id,
             movies.title AS movie,
-            reviews.review_text,
+            reviews.review_text, reviews.rating,
             movies.cover_image AS cover_image  
         FROM reviews
         JOIN movies ON reviews.movie_id = movies.tmdb_id
@@ -596,7 +596,7 @@ def edit_review(review_id):
 
     # Get the review to edit
     cursor.execute("""
-        SELECT id, review_text
+        SELECT id, review_text, rating
         FROM reviews
         WHERE id = %s AND user_id = %s
     """, (review_id, user_id))
@@ -607,13 +607,13 @@ def edit_review(review_id):
 
     if request.method == 'POST': # If the request method is POST
         updated_review = request.form['review_text'] # Get the updated review
-
+        updated_rate = request.form['rating']
         # Update the review
         cursor.execute("""
             UPDATE reviews
-            SET review_text = %s
+            SET review_text = %s, rating = %s
             WHERE id = %s
-        """, (updated_review, review_id))
+        """, (updated_review, updated_rate, review_id))
         app.db.commit() # Commit the changes
 
         return redirect('/reviews/my-reviews')  # Redirect to the user's reviews

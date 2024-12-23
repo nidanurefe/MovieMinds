@@ -21,7 +21,6 @@ def get_db_connection(app)->pymysql.Connection:
         cursorclass=pymysql.cursors.DictCursor
     )
 
-
 # ***** Functions to fetch data from API *****
 
 # Function to fetch movies from the TMDB API
@@ -94,44 +93,42 @@ def get_movie_details(movie_id)->dict:
 # Function to insert a movie into the database
 def insert_movie(connection, movie) -> None:
     with connection.cursor() as cursor:   # Create a cursor object
-        genre_id:int = movie['genre_ids'][0] if movie['genre_ids'] else None # Get the genre ID
-        movie_details:dict = get_movie_details(movie['id']) # Fetch the details of the movie
-        if movie_details: # If the details are fetched successfully
-            producers = movie_details.get('production_companies', []) # Get the producers of the movie
-            if producers: # If producers are found
-                producer_id = producers[0]['id'] # Get the ID of the first producer
-                producer_name = producers[0]['name'] # Get the name of the first producer
-                insert_producer(connection, producer_id, producer_name) # Insert the producer into the database
-        # print(movie_details['production_companies'][0]) # Print the producer of the movie for debugging purposes
-        poster_path:str = IMAGE_BASE_URL + movie.get('poster_path', '') # Get the poster path of the movie
+        genre_id: int = movie['genre_ids'][0] if movie['genre_ids'] else None  # Get the genre ID
+        movie_details: dict = get_movie_details(movie['id'])  # Fetch the details of the movie
+        if movie_details:  # If the details are fetched successfully
+            producers = movie_details.get('production_companies', [])  # Get the producers of the movie
+            if producers:  # If producers are found
+                producer_id = producers[0]['id']  # Get the ID of the first producer
+                producer_name = producers[0]['name']  # Get the name of the first producer
+                insert_producer(connection, producer_id, producer_name)  # Insert the producer into the database
+        poster_path: str = IMAGE_BASE_URL + movie.get('poster_path', '')  # Get the poster path of the movie
 
-        check_sql = "SELECT COUNT(*) AS count FROM movies WHERE tmdb_id = %s" # SQL query to check if the movie already exists
-        cursor.execute(check_sql, (movie['id'],)) # Execute the query
-        result:dict = cursor.fetchone() # Fetch the result of the query
- 
-        count:int = result['count'] if isinstance(result, dict) else result[0] # Get the count of the result
-        print("movie: ", movie['title'])
-        print("movie: ", movie_details['production_companies'])
+        # SQL query to check if the movie already exists by fetching tmdb_id
+        check_sql = "SELECT tmdb_id FROM movies WHERE tmdb_id = %s"
+        cursor.execute(check_sql, (movie['id'],))  # Execute the query
+        result = cursor.fetchone()  # Fetch the result of the query
 
-        if count == 0:   # If the movie does not exist in the database
-            sql = """  # SQL query to insert the movie into the database
+        if result is None:  # If no result is found, the movie does not exist in the database
+            # SQL query to insert the movie into the database
+            sql = """  
             INSERT INTO movies (tmdb_id, title, release_year, rating, genre_id, cover_image, producer_id)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
             """
-            cursor.execute(sql, ( # Execute the query
+            cursor.execute(sql, (  # Execute the query
                 movie['id'],
                 movie['title'],
                 movie['release_date'][:4] if 'release_date' in movie and movie['release_date'] else None,
                 movie.get('vote_average', 0),
                 genre_id,
                 poster_path,
-                movie_details['production_companies'][0]['id']
+                movie_details['production_companies'][0]['id'] if movie_details['production_companies'] else None
             ))
-            connection.commit() # Commit the transaction 
-        else: # If the movie already exists in the database
+            connection.commit()  # Commit the transaction
+            print(f"Movie '{movie['title']}' added to the database.")
+        else:  # If a result is found, the movie already exists in the database
             print(f"Movie with tmdb_id {movie['id']} already exists.")  # Print a message
-            connection.commit() # Commit the transaction
-            return # Return from the function
+            connection.commit()  # Commit the transaction
+
 
 # Function to insert a producer into the database
 def insert_producer(connection, producer_id, producer_name)->None: 
