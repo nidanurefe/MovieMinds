@@ -538,6 +538,35 @@ def add_review():
                 (user_id, movie_id, review, rating)
             )
 
+            # Fetch existing rating from movies table
+            cursor.execute(
+                """
+                SELECT rating FROM movies WHERE tmdb_id = %s
+                """, (movie_id)
+            )
+            tmdb_rating = cursor.fetchone()[0] 
+
+            # Calculate averate user rating for the movie
+            cursor.execute(
+                """
+                SELECT AVG(rating) FROM reviews WHERE movie_id = %s
+                """, (movie_id,)
+            )
+            average_user_rating = cursor.fetchone()[0]  
+
+            combined_rating:float = (tmdb_rating + average_user_rating) / 2
+
+            # Update the movie's rating in the movies table
+            cursor.execute(
+                """
+                UPDATE movies 
+                SET rating = %s 
+                WHERE tmdb_id = %s
+                """, 
+                (combined_rating, movie_id)
+            )
+
+
             app.db.commit() # Commit the changes
             cursor.close()  # Close the cursor
 
@@ -626,9 +655,10 @@ def edit_review(review_id):
 
     # Get the review to edit
     cursor.execute("""
-        SELECT id, review_text, rating
+        SELECT reviews.id, reviews.review_text, reviews.rating, movies.tmdb_id, movies.rating
         FROM reviews
-        WHERE id = %s AND user_id = %s
+        JOIN movies ON reviews.movie_id = movies.tmdb_id
+        WHERE reviews.id = %s AND reviews.user_id = %s
     """, (review_id, user_id))
     review = cursor.fetchone() # Fetch the review
 
@@ -638,13 +668,31 @@ def edit_review(review_id):
     if request.method == 'POST': # If the request method is POST
         updated_review = request.form['review_text'] # Get the updated review
         updated_rate = request.form['rating']
+        movie_id = review[3]
+        tmdb_rating = review[4]
         # Update the review
         cursor.execute("""
             UPDATE reviews
             SET review_text = %s, rating = %s
             WHERE id = %s
         """, (updated_review, updated_rate, review_id))
+
+        cursor.execute("""
+            SELECT AVG(rating) FROM reviews WHERE movie_id = %s
+        """, (movie_id,))
+        average_user_rating = cursor.fetchone()[0]
+        combined_rating = (tmdb_rating + average_user_rating) / 2
+
+        cursor.execute("""
+            UPDATE movies 
+            SET rating = %s 
+            WHERE tmdb_id = %s
+        """, (combined_rating, movie_id))
+
+    
+
         app.db.commit() # Commit the changes
+        cursor.close()
 
         return redirect('/reviews/my-reviews')  # Redirect to the user's reviews
 
